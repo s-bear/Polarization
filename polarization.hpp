@@ -80,7 +80,7 @@ namespace Polarization {
                         float(raw[IDX(rx2 | PATR(pattern, 0), cx2 | PATC(pattern, 0), cols)]),
                         float(raw[IDX(rx2 | PATR(pattern, 1), cx2 | PATC(pattern, 1), cols)]),
                         float(raw[IDX(rx2 | PATR(pattern, 2), cx2 | PATC(pattern, 2), cols)]),
-                        float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 2), cols)])
+                        float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 3), cols)])
                     );
             }
         }
@@ -107,7 +107,7 @@ namespace Polarization {
                     float(raw[IDX(rx2 | PATR(pattern, 0), cx2 | PATC(pattern, 0), cols)]),
                     float(raw[IDX(rx2 | PATR(pattern, 1), cx2 | PATC(pattern, 1), cols)]),
                     float(raw[IDX(rx2 | PATR(pattern, 2), cx2 | PATC(pattern, 2), cols)]),
-                    float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 2), cols)])
+                    float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 3), cols)])
                     );
                 out[IDX(r, c, cols_2)] = dot(&gains[IDX(r, c, cols_2)], _mm_sub_ps(packed, darks[IDX(r, c, cols_2)]));
             }
@@ -129,7 +129,7 @@ namespace Polarization {
                     float(raw[IDX(rx2 | PATR(pattern, 0), cx2 | PATC(pattern, 0), cols)]),
                     float(raw[IDX(rx2 | PATR(pattern, 1), cx2 | PATC(pattern, 1), cols)]),
                     float(raw[IDX(rx2 | PATR(pattern, 2), cx2 | PATC(pattern, 2), cols)]),
-                    float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 2), cols)])
+                    float(raw[IDX(rx2 | PATR(pattern, 3), cx2 | PATC(pattern, 3), cols)])
                     );
                 out[IDX(r, c, cols_2)] = dot(_mm_sub_ps(packed, darks[IDX(r, c, cols_2)]), gains[IDX(r, c, cols_2)]);
             }
