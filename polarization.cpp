@@ -378,22 +378,25 @@ void Polarization::filter_zero(const size_t rows, const size_t cols, const float
     int roff = filt_rows / 2;
     int coff = filt_cols / 2;
     int r, c, fr, fc, rx, cx;
-    __m128 sum;
-    #pragma omp parallel for private(r,c,sum,fr,fc,rx,cx)
+    Vec4f sum,v,f;
+    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0.0f);
             for (fr = 0; fr < filt_rows; ++fr) {
                 for (fc = 0; fc < filt_cols; ++fc) {
                     rx = r + fr - roff;
                     cx = c + fc - coff;
                     if (rx < 0 || cx < 0 || rx >= rows || cx >= cols)
                         continue; //sum += 0
-                    else //sum += in[rx,cx]*filt[fr,fc];
-                        sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx,cx,cols)],filt[IDX(fr,fc,filt_cols)]));
+                    else {//sum += in[rx,cx]*filt[fr,fc];
+                        v.load(in+IDX(rx,cx,cols)*4);
+                        f.load(filt+IDX(fr,fc,filt_cols)*4);
+                        sum += v*f;
+                    }
                 }
             }
-            out[IDX(r, c, cols)] = sum;
+            sum.store(out+IDX(r,c,cols));
         }
     }
 }
@@ -402,35 +405,41 @@ void Polarization::filter_zero(const size_t rows, const size_t cols, const float
 {
     int off = filt_size / 2;
     int r, c, fi, rx, cx;
-    __m128 sum;
+    Vec4f sum,v,f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,fi,rx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0.0f);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = r + fi - off;
                 if(rx < 0 || rx >= rows)
                     continue;
-                else
-                    sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx,c,cols)],filt[fi]));
+                else {
+                    v.load(in+IDX(rx,c,cols)*4);
+                    f.load(filt+fi*4);
+                    sum += v*f;
+                }
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4)
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,fi,cx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = out[IDX(r,c,cols)];
+            sum.load(out+IDX(r,c,cols)*4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = c + fi - off;
                 if(cx < 0 || cx >= cols)
                     continue;
-                else
-                    sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(r,cx,cols)],filt[fi]));
+                else {
+                    v.load(in+IDX(r,cx,cols)*4);
+                    f.load(filt+fi*4);
+                    sum += v*f;
+                }
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
 }
@@ -440,19 +449,21 @@ void Polarization::filter_wrap(const size_t rows, const size_t cols, const float
     int roff = filt_rows / 2;
     int coff = filt_cols / 2;
     int r, c, fr, fc, rx, cx;
-    __m128 sum;
-    #pragma omp parallel for private(r,c,sum,fr,fc,rx,cx)
+    Vec4f sum, v, f;
+    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0);
             for (fr = 0; fr < filt_rows; ++fr) {
                 for (fc = 0; fc < filt_cols; ++fc) {
                     rx = WRAP(r + fr - roff, rows);
                     cx = WRAP(c + fc - coff, cols);
-                    sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx, cx, cols)], filt[IDX(fr, fc, filt_cols)]));
+                    v.load(in+IDX(rx,cx,cols)*4);
+                    f.load(filt+IDX(fr,fc,filt_cols)*4);
+                    sum += v*f;
                 }
             }
-            out[IDX(r, c, cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
 }
@@ -461,29 +472,33 @@ void Polarization::filter_wrap(const size_t rows, const size_t cols, const float
 {
     int off = filt_size / 2;
     int r, c, fi, rx, cx;
-    __m128 sum;
+    Vec4f sum, v, f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,fi,rx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = WRAP(r + fi - off, rows);
-                sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx,c,cols)],filt[fi]));
+                v.load(in+IDX(rx,c,cols)*4);
+                f.load(filt+fi*4);
+                sum += v*f;
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,fi,cx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = out[IDX(r,c,cols)];
+            sum.load(out+IDX(r,c,cols)*4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = WRAP(c + fi - off, cols);
-                sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(r,cx,cols)],filt[fi]));
+                v.load(in+IDX(r,cx,cols)*4);
+                f.load(filt+fi*4);
+                sum += v*f;
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
 }
@@ -493,19 +508,21 @@ void Polarization::filter_reflect(const size_t rows, const size_t cols, const fl
     int roff = filt_rows / 2;
     int coff = filt_cols / 2;
     int r, c, fr, fc, rx, cx;
-    __m128 sum;
-    #pragma omp parallel for private(r,c,sum,fr,fc,rx,cx)
+    Vec4f sum, v, f;
+    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0);
             for (fr = 0; fr < filt_rows; ++fr) {
                 for (fc = 0; fc < filt_cols; ++fc) {
                     rx = REFLECT(r + fr - roff, rows);
                     cx = REFLECT(c + fc - coff, cols);
-                    sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx, cx, cols)], filt[IDX(fr, fc, filt_cols)]));
+                    v.load(in+IDX(rx,cx,cols)*4);
+                    f.load(filt+IDX(fr,fc,filt_cols)*4);
+                    sum += v*f;
                 }
             }
-            out[IDX(r, c, cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
 }
@@ -514,29 +531,33 @@ void Polarization::filter_reflect(const size_t rows, const size_t cols, const fl
 {
     int off = filt_size / 2;
     int r, c, fi, rx, cx;
-    __m128 sum;
+    Vec4f sum, v, f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,fi,rx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = _mm_set1_ps(0);
+            sum = Vec4f(0);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = REFLECT(r + fi - off, rows);
-                sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(rx,c,cols)],filt[fi]));
+                v.load(in+IDX(rx,c,cols)*4);
+                f.load(filt+fi*4);
+                sum += v*f;
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,fi,cx)
+    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum = out[IDX(r,c,cols)];
+            sum.load(out+IDX(r,c,cols)*4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = REFLECT(c + fi - off, cols);
-                sum = _mm_add_ps(sum, _mm_mul_ps(in[IDX(r,cx,cols)],filt[fi]));
+                v.load(in+IDX(r,cx,cols)*4);
+                f.load(filt+fi*4);
+                sum += v*f;
             }
-            out[IDX(r,c,cols)] = sum;
+            sum.store(out+IDX(r,c,cols)*4);
         }
     }
 }
@@ -627,6 +648,6 @@ void Polarization::aopx2(const size_t n, const float* simg, float* out) {
 void Polarization::ella(const size_t n, const float* simg, float* out) {
     #pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i] = 0.5*asinf(simg[i+3] / simg[i]);
+        out[i] = 0.5*asinf(simg[i+3] / simg[i]); //TODO: loop unrolling w/ SSE
     }
 }

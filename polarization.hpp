@@ -177,25 +177,25 @@ namespace Polarization {
     DLL_PUBLIC void stokes_r(const size_t n, const float* img, const float* R, float* out);
 
     //extract a single element from the float
-    void element(const size_t param, const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void element(const size_t param, const size_t n, const float* simg, float* out);
 
     //degree of polarization: hypot(s1,s2,s3)/s0
-    void dop(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void dop(const size_t n, const float* simg, float* out);
 
     //degree of linear polarization: hypot(s1,s2)/s0
-    void dolp(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void dolp(const size_t n, const float* simg, float* out);
 
     //degree of circular polarization: abs(s3)/s0
-    void docp(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void docp(const size_t n, const float* simg, float* out);
 
     //angle of polarization: 0.5*atan(s2/s1)
-    void aop(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void aop(const size_t n, const float* simg, float* out);
 
     //2x angle of polarization: atan(s2/s1)
-    void aopx2(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void aopx2(const size_t n, const float* simg, float* out);
 
     //ellipticity angle: 0.5*asin(s3/s0)
-    void ella(const size_t n, const float* simg, float* out);
+    DLL_PUBLIC void ella(const size_t n, const float* simg, float* out);
 
     //TODO:
     //decompose stokes vector?
