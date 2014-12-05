@@ -1,17 +1,17 @@
 /**********
- *   Copyright 2014 Samuel Bear Powell
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+*   Copyright 2014 Samuel Bear Powell
+*
+*   Licensed under the Apache License, Version 2.0 (the "License");
+*   you may not use this file except in compliance with the License.
+*   You may obtain a copy of the License at
+*
+*       http://www.apache.org/licenses/LICENSE-2.0
+*
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
 \**********/
 #include "polarization.hpp"
 #include <omp.h>
@@ -22,25 +22,25 @@
 const uint8_t Polarization::default_pattern = (PIX0(0, 0) | PIX1(1, 1) | PIX2(0, 1) | PIX3(1, 0));
 #endif
 
-Polarization::Mat16f() {}
-Polarization::Mat16f(const float* m) {
+Polarization::Mat16f::Mat16f() {}
+Polarization::Mat16f::Mat16f(const float* m) {
     load(m);
 }
-Polarization::Mat16f(const Vec4f& r0, const Vec4f& r1, const Vec4f& r2, const Vec4f& r3) : r0(r0), r1(r1), r2(r2), r3(r3) {}
-Polarization::Mat16f(const Mat16f& m) : r0(m.r0), r1(m.r1), r2(m.r2), r3(m.r3) {}
+Polarization::Mat16f::Mat16f(const Vec4f& r0, const Vec4f& r1, const Vec4f& r2, const Vec4f& r3) : r0(r0), r1(r1), r2(r2), r3(r3) {}
+Polarization::Mat16f::Mat16f(const Mat16f& m) : r0(m.r0), r1(m.r1), r2(m.r2), r3(m.r3) {}
 
 void Polarization::Mat16f::load(const float* m) {
-    r0.load(mat);
-    r1.load(mat+4);
-    r2.load(mat+8);
-    r3.load(mat+12);
+    r0.load(m);
+    r1.load(m + 4);
+    r2.load(m + 8);
+    r3.load(m + 12);
 }
 
 void Polarization::Mat16f::store(float * m) const {
-    r0.store(mat);
-    r1.store(mat+4);
-    r2.store(mat+8);
-    r3.store(mat+12);
+    r0.store(m);
+    r1.store(m + 4);
+    r2.store(m + 8);
+    r3.store(m + 12);
 }
 
 void Polarization::Mat16f::trans() {
@@ -165,7 +165,7 @@ float Polarization::Mat16f::det() const {
 }
 
 Polarization::Mat16f Polarization::Mat16f::inv(float& det) const {
-        //load matrix
+    //load matrix
     Mat16f c = cofactors();
     det = horizontal_add(r0*c.r0);
     c.trans();
@@ -180,17 +180,17 @@ Polarization::Mat16f Polarization::Mat16f::inv_left(float& det) const {
     //inv(A'.A).A'
     Mat16f t(*this);
     t.trans();
-    return dot(dot(t,*this).inv(det), t);
+    return dot(dot(t, *this).inv(det), t);
 }
 
 Polarization::Mat16f Polarization::Mat16f::inv_right(float& det) const {
     //A'.inv(A.A')
     Mat16f t(*this);
     t.trans();
-    return dot(t, dot(*this,t).inv(det));
+    return dot(t, dot(*this, t).inv(det));
 }
 
-Mat16f Polarization::dot(const Mat16f& m1, const Mat16f& m2) {
+Polarization::Mat16f Polarization::dot(const Mat16f& m1, const Mat16f& m2) {
     Mat16f c;
     c.r0 = m1.r0[0] * m2.r0 + m1.r0[1] * m2.r1 + m1.r0[2] * m2.r2 + m1.r0[3] * m2.r2;
     c.r1 = m1.r1[0] * m2.r0 + m1.r1[1] * m2.r1 + m1.r1[2] * m2.r2 + m1.r1[3] * m2.r2;
@@ -206,7 +206,7 @@ Vec4f Polarization::dot(const Mat16f& m, const Vec4f& v) {
 }
 
 Vec4f Polarization::dot(const Vec4f& v, const Mat16f& m) {
-    return v[0]*m.r0 + v[1]*m.r1 + v[2]*m.r2 + v[3]*m.r3;
+    return v[0] * m.r0 + v[1] * m.r1 + v[2] * m.r2 + v[3] * m.r3;
 }
 
 float Polarization::dot(const Vec4f& v1, const Vec4f& v2) {
@@ -214,12 +214,12 @@ float Polarization::dot(const Vec4f& v1, const Vec4f& v2) {
 }
 
 uint8_t Polarization::encode_pattern(int p00, int p01, int p10, int p11) {
-    return (uint8_t)(PIXN(0,0,p00) | PIXN(0,1,p01) | PIXN(1,0,p10) | PIXN(1,1,p11));
+    return (uint8_t)(PIXN(0, 0, p00) | PIXN(0, 1, p01) | PIXN(1, 0, p10) | PIXN(1, 1, p11));
 }
 
 void Polarization::decode_pattern(uint8_t pattern, int &p00, int &p01, int &p10, int &p11) {
-    for(int n = 0; n < 4; ++n) {
-        switch(PATRC(pattern,n)) {
+    for (int n = 0; n < 4; ++n) {
+        switch (PATRC(pattern, n)) {
         case 0: p00 = n; break;
         case 1: p01 = n; break;
         case 2: p10 = n; break;
@@ -266,90 +266,102 @@ void Polarization::expand_superpixels(const size_t rows, const size_t cols, cons
     }
 }
 
-void repack_superpixels(const size_t n, const float* packed, float* repacked, uint8_t old_pattern, uint8_t new_pattern) {
+void Polarization::repack_superpixels(const size_t n, const float* packed, float* repacked, uint8_t old_pattern, uint8_t new_pattern) {
     if (new_pattern == old_pattern && repacked != packed) {
         //just copy
-        std::copy(packed,packed+n,repacked);
+        std::copy(packed, packed + n, repacked);
     }
     else {
         int old[4], order[4];
         //for each index in new_pattern, where was it in old_pattern?
-        decode_pattern(old_pattern,old[0],old[1],old[2],old[3]);
-        for(i = 0; i < 4; ++i)
-            order[i] = old[PATRC(new_pattern,i)];
+        decode_pattern(old_pattern, old[0], old[1], old[2], old[3]);
+        for (size_t i = 0; i < 4; ++i)
+            order[i] = old[PATRC(new_pattern, i)];
         //do the shuffle
-        for(size_t i = 0; i < n; i += 4) {
-            repacked[i]   = packed[i + order[0]];
-            repacked[i+1] = packed[i + order[1]]; 
-            repacked[i+2] = packed[i + order[2]];
-            repacked[i+3] = packed[i + order[3]];
+        for (size_t i = 0; i < n; i += 4) {
+            repacked[i] = packed[i + order[0]];
+            repacked[i + 1] = packed[i + order[1]];
+            repacked[i + 2] = packed[i + order[2]];
+            repacked[i + 3] = packed[i + order[3]];
         }
     }
 }
 
-void Polarization::mask_low_high(const size_t n, const float* raw, float low, float high, float* out) {
+uint32_t Polarization::mask_low_high(const size_t n, const float* raw, float low, float high, float* out) {
     Vec4f low_vec(low);
     Vec4f high_vec(high);
     Vec4f nan_vec = nan4f(0);
-    Vec4f val, mask;
-    #pragma omp parallel for private(val, mask)
+    Vec4f val;
+    Vec4fb mask;
+    Vec4ui mask_count(0);
+#pragma omp parallel for private(val)
     for (size_t i = 0; i < n; i += 4) {
-        val.load(raw+i);
+        val.load(raw + i);
         mask = (val < low_vec) | (val > high_vec);
-        val = (~mask & val) | (mask & nan_vec);
-        val.store(out+i);
+        val = select(mask, nan_vec, val);
+        mask_count = if_add(mask, mask_count, 1);
+        val.store(out + i);
     }
+    return horizontal_add(mask_count);
 }
-void Polarization::mask_low(const size_t n, const float* raw, float low, float* out) {
+uint32_t Polarization::mask_low(const size_t n, const float* raw, float low, float* out) {
     Vec4f low_vec(low);
-    Vec4f high_vec(high);
     Vec4f nan_vec = nan4f(0);
-    Vec4f val, mask;
-    #pragma omp parallel for private(val, mask)
+    Vec4f val;
+    Vec4fb mask;
+    Vec4ui mask_count(0);
+#pragma omp parallel for private(val, mask)
     for (size_t i = 0; i < n; i += 4) {
-        val.load(raw+i);
+        val.load(raw + i);
         mask = (val < low_vec);
-        val = (~mask & val) | (mask & nan_vec);
-        val.store(out+i);
+        val = select(mask, nan_vec, val);
+        mask_count = if_add(mask, mask_count, 1);
+        val.store(out + i);
     }
+    return horizontal_add(mask_count);
 }
-void Polarization::mask_high(const size_t n, const float* raw, float high, float* out) {
-    Vec4f low_vec(low);
+uint32_t Polarization::mask_high(const size_t n, const float* raw, float high, float* out) {
     Vec4f high_vec(high);
     Vec4f nan_vec = nan4f(0);
-    Vec4f val, mask;
-    #pragma omp parallel for private(val, mask)
+    Vec4f val;
+    Vec4fb mask;
+    Vec4ui mask_count(0);
+#pragma omp parallel for private(val, mask)
     for (size_t i = 0; i < n; i += 4) {
-        val.load(raw+i);
+        val.load(raw + i);
         mask = (val > high_vec);
-        val = (~mask & val) | (mask & nan_vec);
-        val.store(out+i);
+        val = select(mask, nan_vec, val);
+        mask_count = if_add(mask, mask_count, 1);
+        val.store(out + i);
     }
+    return horizontal_add(mask_count);
 }
 
 //does dot(gain, raw-dark)
 void Polarization::calibrate_matrix(const size_t n, const float* raw, const float* darks, const float* gains, float* out) {
     Vec4f r, d;
     Mat16f g;
-    #pragma omp parallel for private(r,d,g)
+#pragma omp parallel for private(r,d,g)
     for (int i = 0; i < n; i += 4) {
         // gains * (raw - darks)
         r.load(raw + i);
         d.load(darks + i);
-        g.load(gains + i*4);
-        dot(g, r-d).store(out + i);
+        g.load(gains + i * 4);
+        dot(g, r - d).store(out + i);
     }
 }
 
 //doead dot(raw - dark, gain)  (slightly faster)
+/*
 void Polarization::calibrate_matrix_t(const size_t n, const float* raw, const float* darks, const float* gains, float* out) {
     Vec4f r, d;
     Mat16f g;
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < n; ++i) {
         out[i] = dot(_mm_sub_ps(raw[i], darks[i]), &gains[i]);
     }
 }
+*/
 
 void Polarization::filter(const size_t rows, const size_t cols, const float* in, float* out, const size_t filt_rows, const size_t filt_cols, const float* filt, const edge_mode::t mode) {
     switch (mode) {
@@ -375,11 +387,11 @@ void Polarization::filter(const size_t rows, const size_t cols, const float* in,
 
 void Polarization::filter_zero(const size_t rows, const size_t cols, const float* in, float* out, const size_t filt_rows, const size_t filt_cols, const float* filt)
 {
-    int roff = filt_rows / 2;
-    int coff = filt_cols / 2;
+    int roff = int(filt_rows / 2);
+    int coff = int(filt_cols / 2);
     int r, c, fr, fc, rx, cx;
-    Vec4f sum,v,f;
-    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
+    Vec4f sum, v, f;
+#pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0.0f);
@@ -390,67 +402,67 @@ void Polarization::filter_zero(const size_t rows, const size_t cols, const float
                     if (rx < 0 || cx < 0 || rx >= rows || cx >= cols)
                         continue; //sum += 0
                     else {//sum += in[rx,cx]*filt[fr,fc];
-                        v.load(in+IDX(rx,cx,cols)*4);
-                        f.load(filt+IDX(fr,fc,filt_cols)*4);
+                        v.load(in + IDX(rx, cx, cols) * 4);
+                        f.load(filt + IDX(fr, fc, filt_cols) * 4);
                         sum += v*f;
                     }
                 }
             }
-            sum.store(out+IDX(r,c,cols));
+            sum.store(out + IDX(r, c, cols));
         }
     }
 }
 
 void Polarization::filter_zero(const size_t rows, const size_t cols, const float* in, float* out, const size_t filt_size, const float* filt)
 {
-    int off = filt_size / 2;
+    int off = int(filt_size / 2);
     int r, c, fi, rx, cx;
-    Vec4f sum,v,f;
+    Vec4f sum, v, f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0.0f);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = r + fi - off;
-                if(rx < 0 || rx >= rows)
+                if (rx < 0 || rx >= rows)
                     continue;
                 else {
-                    v.load(in+IDX(rx,c,cols)*4);
-                    f.load(filt+fi*4);
+                    v.load(in + IDX(rx, c, cols) * 4);
+                    f.load(filt + fi * 4);
                     sum += v*f;
                 }
             }
-            sum.store(out+IDX(r,c,cols)*4)
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum.load(out+IDX(r,c,cols)*4);
+            sum.load(out + IDX(r, c, cols) * 4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = c + fi - off;
-                if(cx < 0 || cx >= cols)
+                if (cx < 0 || cx >= cols)
                     continue;
                 else {
-                    v.load(in+IDX(r,cx,cols)*4);
-                    f.load(filt+fi*4);
+                    v.load(in + IDX(r, cx, cols) * 4);
+                    f.load(filt + fi * 4);
                     sum += v*f;
                 }
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
 }
 
 void Polarization::filter_wrap(const size_t rows, const size_t cols, const float* in, float* out, const size_t filt_rows, const size_t filt_cols, const float* filt)
 {
-    int roff = filt_rows / 2;
-    int coff = filt_cols / 2;
+    int roff = int(filt_rows / 2);
+    int coff = int(filt_cols / 2);
     int r, c, fr, fc, rx, cx;
     Vec4f sum, v, f;
-    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
+#pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0);
@@ -458,12 +470,12 @@ void Polarization::filter_wrap(const size_t rows, const size_t cols, const float
                 for (fc = 0; fc < filt_cols; ++fc) {
                     rx = WRAP(r + fr - roff, rows);
                     cx = WRAP(c + fc - coff, cols);
-                    v.load(in+IDX(rx,cx,cols)*4);
-                    f.load(filt+IDX(fr,fc,filt_cols)*4);
+                    v.load(in + IDX(rx, cx, cols) * 4);
+                    f.load(filt + IDX(fr, fc, filt_cols) * 4);
                     sum += v*f;
                 }
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
 }
@@ -474,31 +486,31 @@ void Polarization::filter_wrap(const size_t rows, const size_t cols, const float
     int r, c, fi, rx, cx;
     Vec4f sum, v, f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = WRAP(r + fi - off, rows);
-                v.load(in+IDX(rx,c,cols)*4);
-                f.load(filt+fi*4);
+                v.load(in + IDX(rx, c, cols) * 4);
+                f.load(filt + fi * 4);
                 sum += v*f;
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum.load(out+IDX(r,c,cols)*4);
+            sum.load(out + IDX(r, c, cols) * 4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = WRAP(c + fi - off, cols);
-                v.load(in+IDX(r,cx,cols)*4);
-                f.load(filt+fi*4);
+                v.load(in + IDX(r, cx, cols) * 4);
+                f.load(filt + fi * 4);
                 sum += v*f;
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
 }
@@ -509,7 +521,7 @@ void Polarization::filter_reflect(const size_t rows, const size_t cols, const fl
     int coff = filt_cols / 2;
     int r, c, fr, fc, rx, cx;
     Vec4f sum, v, f;
-    #pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
+#pragma omp parallel for private(r,c,sum,v,f,fr,fc,rx,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0);
@@ -517,12 +529,12 @@ void Polarization::filter_reflect(const size_t rows, const size_t cols, const fl
                 for (fc = 0; fc < filt_cols; ++fc) {
                     rx = REFLECT(r + fr - roff, rows);
                     cx = REFLECT(c + fc - coff, cols);
-                    v.load(in+IDX(rx,cx,cols)*4);
-                    f.load(filt+IDX(fr,fc,filt_cols)*4);
+                    v.load(in + IDX(rx, cx, cols) * 4);
+                    f.load(filt + IDX(fr, fc, filt_cols) * 4);
                     sum += v*f;
                 }
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
 }
@@ -533,121 +545,121 @@ void Polarization::filter_reflect(const size_t rows, const size_t cols, const fl
     int r, c, fi, rx, cx;
     Vec4f sum, v, f;
     //apply to rows
-    #pragma omp parallel for private(r,c,sum,v,f,fi,rx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,rx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
             sum = Vec4f(0);
             for (fi = 0; fi < filt_size; ++fi) {
                 rx = REFLECT(r + fi - off, rows);
-                v.load(in+IDX(rx,c,cols)*4);
-                f.load(filt+fi*4);
+                v.load(in + IDX(rx, c, cols) * 4);
+                f.load(filt + fi * 4);
                 sum += v*f;
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
     //apply to columns:
-    #pragma omp parallel for private(r,c,sum,v,f,fi,cx)
+#pragma omp parallel for private(r,c,sum,v,f,fi,cx)
     for (r = 0; r < rows; ++r) {
         for (c = 0; c < cols; ++c) {
-            sum.load(out+IDX(r,c,cols)*4);
+            sum.load(out + IDX(r, c, cols) * 4);
             for (fi = 0; fi < filt_size; ++fi) {
                 cx = REFLECT(c + fi - off, cols);
-                v.load(in+IDX(r,cx,cols)*4);
-                f.load(filt+fi*4);
+                v.load(in + IDX(r, cx, cols) * 4);
+                f.load(filt + fi * 4);
                 sum += v*f;
             }
-            sum.store(out+IDX(r,c,cols)*4);
+            sum.store(out + IDX(r, c, cols) * 4);
         }
     }
 }
 
 void Polarization::stokes(const size_t n, const float* img, float* out) {
-    float R[] = {0.5, 0.5, 0.5, 0.5,
-               1.0,-1.0, 0.0, 0.0,
-               0.0, 0.0, 1.0,-1.0,
-               0.0, 0.0, 0.0, 0.0};
-   stokes(n,img,R,out);
+    float R[] = { 0.5, 0.5, 0.5, 0.5,
+        1.0, -1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, -1.0,
+        0.0, 0.0, 0.0, 0.0 };
+    stokes(n, img, R, out);
 }
 
 void Polarization::stokes(const size_t n, const float* img, const float* R, float* out) {
     Mat16f r(R);
     Vec4f v;
-    #pragma omp parallel for private(v)
-    for(size_t i = 0; i < n; i += 4) {
-        v.load(img+i);
-        dot(r,v).store(out+i);
+#pragma omp parallel for private(v)
+    for (size_t i = 0; i < n; i += 4) {
+        v.load(img + i);
+        dot(r, v).store(out + i);
     }
 }
 
 void Polarization::stokes_r(const size_t n, const float* img, const float* R, float* out) {
     Mat16f r;
     Vec4f v;
-    #pragma omp parallel for private(r,v)
-    for(size_t i = 0; i < n; i += 4) {
+#pragma omp parallel for private(r,v)
+    for (size_t i = 0; i < n; i += 4) {
         v.load(img + i);
-        r.load(R + i*4);
-        dot(r,v).store(out+i);
+        r.load(R + i * 4);
+        dot(r, v).store(out + i);
     }
 }
 
 void Polarization::element(const size_t param, const size_t n, const float* simg, float* out) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i/4] = simg[i+param];
+        out[i / 4] = simg[i + param];
     }
 }
 
 //degree of polarization: hypot(s1,s2,s3)/s0
 void Polarization::dop(const size_t n, const float* simg, float* out) {
-    Vec4f v,s;
-    #pragma omp parallel for private(v,s,d)
+    Vec4f v, s;
+#pragma omp parallel for private(v,s,d)
     for (size_t i = 0; i < n; i += 4) {
-        v.load(simg+i);
+        v.load(simg + i);
         s = square(v);
-        out[i/4] = sqrt(s[1]+s[2]+s[3])/v[0];
+        out[i / 4] = sqrt(s[1] + s[2] + s[3]) / v[0];
     }
 }
 
 //degree of linear polarization: hypot(s1,s2)/s0
 void Polarization::dolp(const size_t n, const float* simg, float* out) {
-    Vec4f v,s;
-    #pragma omp parallel for private(v,s,d)
+    Vec4f v, s;
+#pragma omp parallel for private(v,s,d)
     for (size_t i = 0; i < n; i += 4) {
-        v.load(simg+i);
+        v.load(simg + i);
         s = square(v);
-        out[i/4] = sqrt(s[1]+s[2])/v[0];
+        out[i / 4] = sqrt(s[1] + s[2]) / v[0];
     }
 }
 
 //degree of circular polarization: abs(s3)/s0
 void Polarization::docp(const size_t n, const float* simg, float* out){
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i/4] = fabs(simg[i+3]) / simg[i]; //TODO: loop unrolling w/ SSE
+        out[i / 4] = fabs(simg[i + 3]) / simg[i]; //TODO: loop unrolling w/ SSE
     }
 }
 
 //angle of polarization: 0.5*atan(s2/s1)
 void Polarization::aop(const size_t n, const float* simg, float* out) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i/4] = 0.5*atan2f(simg[i+2], simg[i+1]); //TODO: loop unrolling w/ SSE
+        out[i / 4] = 0.5f*atan2f(simg[i + 2], simg[i + 1]); //TODO: loop unrolling w/ SSE
     }
 }
 
 //2x angle of polarization: atan(s2/s1)
 void Polarization::aopx2(const size_t n, const float* simg, float* out) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i/4] = atan2f(simg[i+2], simg[i+1]); //TODO: loop unrolling w/ SSE
+        out[i / 4] = atan2f(simg[i + 2], simg[i + 1]); //TODO: loop unrolling w/ SSE
     }
 }
 
 //ellipticity angle: 0.5*asin(s3/s0)
 void Polarization::ella(const size_t n, const float* simg, float* out) {
-    #pragma omp parallel for
+#pragma omp parallel for
     for (size_t i = 0; i < n; i += 4) {
-        out[i] = 0.5*asinf(simg[i+3] / simg[i]); //TODO: loop unrolling w/ SSE
+        out[i] = 0.5f*asinf(simg[i + 3] / simg[i]); //TODO: loop unrolling w/ SSE
     }
 }
